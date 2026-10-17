@@ -62,10 +62,9 @@ public class SecurityConfig {
                         // OPTIONS requests (CORS preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ADMIN-only: destructive operations
+                        // ADMIN-only: user management, destructive operations, price adjustments and CSV imports
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-
-                        // ADMIN-only: price adjustments and CSV imports
                         .requestMatchers("/api/price-adjustment/**").hasRole("ADMIN")
                         .requestMatchers("/api/csv/**").hasRole("ADMIN")
 
