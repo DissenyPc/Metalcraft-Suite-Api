@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -27,6 +28,8 @@ public class DataInitializer implements CommandLineRunner {
     private final FillingMaterialRepository fillingRepo;
     private final ClientRepository clientRepo;
     private final BudgetRepository budgetRepo;
+    private final UserRepository userRepo;
+    private final PasswordEncoder passwordEncoder;
     private final com.carpinteria.api.service.csv.CsvImportService csvImportService;
 
     @Value("${app.data-seeder.enabled:true}")
@@ -38,6 +41,8 @@ public class DataInitializer implements CommandLineRunner {
                            FillingMaterialRepository fillingRepo,
                            ClientRepository clientRepo,
                            BudgetRepository budgetRepo,
+                           UserRepository userRepo,
+                           PasswordEncoder passwordEncoder,
                            com.carpinteria.api.service.csv.CsvImportService csvImportService) {
         this.aluminiumRepo = aluminiumRepo;
         this.ironRepo = ironRepo;
@@ -45,6 +50,8 @@ public class DataInitializer implements CommandLineRunner {
         this.fillingRepo = fillingRepo;
         this.clientRepo = clientRepo;
         this.budgetRepo = budgetRepo;
+        this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
         this.csvImportService = csvImportService;
     }
 
@@ -54,6 +61,9 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Data seeder is disabled.");
             return;
         }
+
+        // Always seed default users (regardless of seeder toggle)
+        seedDefaultUsers();
 
         if (aluminiumRepo.count() <= 5) {
             java.io.File alugomCsv = new java.io.File("Alugom.csv");
@@ -104,6 +114,30 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         log.info("Carpintería Metálica database seed check completed.");
+    }
+
+    private void seedDefaultUsers() {
+        if (userRepo.count() == 0) {
+            log.info("Seeding default users (admin + employee)...");
+
+            User admin = new User(
+                    "admin",
+                    "admin@carpinteria.es",
+                    passwordEncoder.encode("admin123"),
+                    Role.ADMIN
+            );
+            userRepo.save(admin);
+
+            User employee = new User(
+                    "empleado",
+                    "empleado@carpinteria.es",
+                    passwordEncoder.encode("empleado123"),
+                    Role.EMPLOYEE
+            );
+            userRepo.save(employee);
+
+            log.info("Default users created: admin (ADMIN), empleado (EMPLOYEE)");
+        }
     }
 
     private void seedAluminiumProfiles() {
