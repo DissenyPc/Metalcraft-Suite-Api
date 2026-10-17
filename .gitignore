@@ -57,6 +57,9 @@ out/
 /dist/
 /nbproject/spring-beans.xml
 
+### Data files ###
+*.csv
+
 ### OS generated files ###
 Thumbs.db
 Desktop.ini
